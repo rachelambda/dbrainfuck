@@ -45,7 +45,7 @@ Except for the normal brainfuck syntax dbrainfuck currently has the following fe
 
 `$` - Saves the value of the current byte
 
-`\`` - Loads saved value to the current byte
+\``\` - Loads saved value to the current byte
 
 `}` - Moves memory pointer as many bytes forward as byte pointed at
 
