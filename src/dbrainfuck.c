@@ -56,6 +56,29 @@ int main(int argc, char** argv){
 	fclose(instruction_fp);
 
 	// Filter whitespace
+	char* cpinst = malloc(instlen);
+	unsigned int cpinstfill = 0;
+	unsigned char comment = 0;
+	for(int n = 0; n <= instlen; n++){
+		if(instarr[n] == '\n' && instarr[n+1] == '#'){
+			comment = 1;
+		} else if(instarr[n] == '\n'){
+			comment = 0;
+		} else if(!(instarr[n] == ' ' || instarr[n] == '\n' || instarr[n] == '\t' || comment)){
+			cpinst[cpinstfill] = instarr[n];
+			cpinstfill++;
+		}
+	}
+	free(instarr);
+	instarr = cpinst;
+	instlen = cpinstfill;
+
+	cpinst = malloc(instlen);
+	for(int n = 0; n <= instlen; n++){
+		cpinst[n] = instarr[n];
+	}
+	free(instarr);
+	instarr = cpinst;
 
 	// Create variables for the program instructions
 	unsigned int instoffset = 0;
@@ -282,13 +305,6 @@ int main(int argc, char** argv){
 				memoffset += *mempointer;
 				mempointer += *mempointer;
 				break;	  
-			// Handle white space
-			case '\n':
-				break;
-			case '\t':
-				break;
-			case ' ':
-				break;
 
 			// Error if char is not recognized
 			default:

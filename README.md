@@ -56,5 +56,4 @@ Except for the normal brainfuck syntax dbrainfuck currently has the following fe
 * Add more custom syntax
   * Set pointer to value
   * ... more to come!
-* Improve whitespace filtering
 * Create a vim syntax file for simplifying developing dbrainfuck (not that anyone is going to)
