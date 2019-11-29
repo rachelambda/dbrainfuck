@@ -44,4 +44,4 @@ Except for the normal brainfuck syntax dbrainfuck currently has the following fe
   * ... more to come!
 * Improve memory managment
 * Improve whitespace filtering
-* Create a vim syntax file for simplifying developing dbrainfuck (if you'd wamt to for whatever reason)
+* Create a vim syntax file for simplifying developing dbrainfuck (not that anyone is going to)
