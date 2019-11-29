@@ -28,6 +28,12 @@ void contract(void* array, unsigned char byte_size, unsigned int* length){
 	array = cparr;
 }
 
+void empty(void* array, unsigned int* length){
+	*length = 0;
+	free(array);
+	array = malloc(0);
+}
+
 void handle_flags(int argc, char** argv){
 	for(int argn = argc; argn > 0; argn--){
 	}
@@ -140,7 +146,7 @@ int main(int argc, char** argv){
 					leftbrackets = 1;
 					rightbrackets = 0;
 					for(int n = instoffset + 1;; n++){ 
-						if(!n < instlen){
+						if(n > instlen){
 							printf("Error at instruction #%d: '%c'. No matching ']'.\n", instoffset, instarr[instoffset]);
 							return -1;
 						}
@@ -222,21 +228,39 @@ int main(int argc, char** argv){
 
 			// Exit loop (think break) or exit program
 			case '\\':
-				leftbrackets = 1;
+				if(instretarrsize == 0){
+					exit(*mempointer);
+				}
+				leftbrackets = 0;
 				rightbrackets = 0;
-				for(int n = instoffset + 1;; n++){ 
-					if(!n < instlen){
-						exit(*mempointer);
-					}
-					if(instarr[n] == '[')
+#ifdef DEBUG
+				printf("%d\n", instretarr[0]);
+#endif
+				for(int n = instretarr[0];; n++){ 
+#ifdef DEBUG
+					printf("instarr[%d] = %c\n", n, instarr[n]);
+#endif
+					if(instarr[n] == '['){
 						leftbrackets++;
-					else if(instarr[n] == ']')
+#ifdef DEBUG
+						printf("Found leftbracket!\n");
+#endif
+					}
+					else if(instarr[n] == ']'){
 						rightbrackets++;
+#ifdef DEBUG
+						printf("Found leftbracket!\n");
+#endif
+					}
 					if(leftbrackets == rightbrackets){
-						instoffset = n; // Found right bracket, will add one though so just set it to the adress of it for now
+						instoffset = n; 
+						break;
+#ifdef DEBUG
+						printf("Equal brackets\n");
+#endif
 					}
 				}
-				contract(instretarr, 4, &instretarrsize);
+				empty(instretarr, &instretarrsize);
 				break;
 
 			// Move mempointer *mempointer to the left
