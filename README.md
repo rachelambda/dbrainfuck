@@ -21,7 +21,7 @@ Except for the normal brainfuck syntax dbrainfuck currently has the following fe
 
 ### General
 
-* Infinite* memory array and infinite* nested loops
+* Infinite\* memory array and infinite\* nested loops
 
 * Error messages
 
@@ -41,6 +41,8 @@ Except for the normal brainfuck syntax dbrainfuck currently has the following fe
 
 * Add more custom syntax
   * Set pointer to value
+  * Use `(` and `)` to save and restore pointer position
+  * Use `{` and `}` to save and put pointer value
   * ... more to come!
 * Improve memory managment
 * Improve whitespace filtering
