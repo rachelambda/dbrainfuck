@@ -43,9 +43,13 @@ Except for the normal brainfuck syntax dbrainfuck currently has the following fe
 
 `p` - Pops the latest pointer from the pointer list
 
-`r` - Saves the value of the current byte
+`$` - Saves the value of the current byte
 
-`l` - Loads saved value to the current byte
+`\`` - Loads saved value to the current byte
+
+`}` - Moves memory pointer as many bytes forward as byte pointed at
+
+`{` - Moves memory pointer as many bytes backwards as byte pointed at
 
 ## Future Plans
 

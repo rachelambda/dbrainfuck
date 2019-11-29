@@ -19,7 +19,13 @@ void expand(void* array, unsigned char byte_size, unsigned int* length){
 
 void contract(void* array, unsigned char byte_size, unsigned int* length){
 	*length--;
-	array = realloc(array, *length * byte_size);
+
+	void* cparr = malloc(*length * byte_size);
+	for(int n = 0; n < *length * byte_size; n++){
+		((byte*)cparr)[n] = ((byte*)array)[n];
+	}
+
+	array = cparr;
 }
 
 void handle_flags(int argc, char** argv){
@@ -154,27 +160,39 @@ int main(int argc, char** argv){
 			// Jump back from loop
 			case ']':
 				if(*mempointer){
+#ifdef DEBUG
+					printf("] *mempointer: %d\n", *mempointer);
+#endif
 					instoffset = instretarr[instretarrsize - 1];
 				}else{
+#ifdef DEBUG
+					printf("] *mempointer: %d, contracting\n", *mempointer);
+#endif
 					contract(instretarr, 4, &instretarrsize);
 				}
 				break;
 
 			// Store the current pointer address
 			case '(':
-				expand(memoffsetstore, 8, &memoffsetstoresize);
+				expand(memoffsetstore, sizeof(memoffsetstore), &memoffsetstoresize);
 				memoffsetstore[memoffsetstoresize - 1].memoffset = memoffset;
 				memoffsetstore[memoffsetstoresize - 1].memptr = mempointer;
 				break;
 
 			// Load the latest pointer address
 			case ')':
+#ifdef DEBUG
+				printf("Before ) values: memoffset: %d, memptr: %d\n", memoffset, mempointer);
+#endif
 				if(memoffsetstoresize < 1){
 					printf("Error at instruction #%d: '%c'. No matching '('.\n", instoffset, instarr[instoffset]);
 					return -1;
 				}
 				memoffset = memoffsetstore[memoffsetstoresize - 1].memoffset;
 				mempointer = memoffsetstore[memoffsetstoresize - 1].memptr;
+#ifdef DEBUG
+				printf("After ( values: memoffset: %d, memptr: %d\n", memoffset, mempointer);
+#endif
 				break;
 
 			// Pop loaded pointer address
@@ -187,12 +205,12 @@ int main(int argc, char** argv){
 				break;
 
 			// Read value of byte and save
-			case 'r':
+			case '$':
 				savedval = *mempointer;
 				break;
 
 			// Load saved value of byte
-			case 'l':
+			case '`':
 				*mempointer = savedval;
 				break;
 			
@@ -220,7 +238,26 @@ int main(int argc, char** argv){
 				}
 				contract(instretarr, 4, &instretarrsize);
 				break;
-			
+
+			// Move mempointer *mempointer to the left
+			case '{':
+				if(memoffset - *mempointer < 0){
+					printf("Error at instruction #%d: '%c'. Attempting to move to index `%d`.\n", instoffset, instarr[instoffset], memoffset - *mempointer);
+					return -1;
+				}
+				memoffset -= *mempointer;
+				mempointer -= *mempointer;
+				break;
+		
+			// Move mempointer *mempointer to the right
+			case '}':
+				if(memoffset + *mempointer >= memsize){
+					memsize += memoffset + *mempointer;
+					expand(mem, 1, &memsize);
+				}
+				memoffset += *mempointer;
+				mempointer += *mempointer;
+				break;	  
 			// Handle white space
 			case '\n':
 				break;
