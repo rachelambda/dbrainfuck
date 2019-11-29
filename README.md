@@ -27,11 +27,15 @@ Except for the normal brainfuck syntax dbrainfuck currently has the following fe
 
 * Supports tabs, newlines and spaces in input files
 
+* Supports comments
+
 * Extended syntax and functionality
 
 \**as long as your have ram to spare*
 
 ### New Syntax
+
+`#` - Treats the rest of the line as a comment
 
 `\` - Breaks the all loops, if not in a loop it will exit the program with the current pointer value as status
 

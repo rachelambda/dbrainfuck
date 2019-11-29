@@ -55,7 +55,7 @@ int main(int argc, char** argv){
 	instlen = getdelim(&instarr, &instlen, '\0', instruction_fp);
 	fclose(instruction_fp);
 
-	// Filter whitespace
+	// Filter whitespace and comments
 	char* cpinst = malloc(instlen);
 	unsigned int cpinstfill = 0;
 	unsigned char comment = 0;
