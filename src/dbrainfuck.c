@@ -202,7 +202,7 @@ int main(int argc, char** argv){
 				break;
 
 			// Pop loaded pointer address
-			case 'p':
+			case '/':
 				if(memoffsetstoresize < 1){
 					printf("Error at instruction #%d: '%c'. No '(' to pop.\n", instoffset, instarr[instoffset]);
 					return -1;
@@ -216,7 +216,7 @@ int main(int argc, char** argv){
 				break;
 
 			// Load saved value of byte
-			case '`':
+			case '@':
 				*mempointer = savedval;
 				break;
 			
