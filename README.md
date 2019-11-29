@@ -33,17 +33,24 @@ Except for the normal brainfuck syntax dbrainfuck currently has the following fe
 
 ### Syntax
 
-`\` - Breaks the current loop, if not in a loop it will end the program
+`\` - Breaks the current loop, if not in a loop it will exit the program with the current pointer value as status
 
 `^FF` - Sets the value of the current byte to the hex value specified (note that whitespace is not supported here at the moment, the formatt must be `^FF`)
+
+`(` - Saves the current memory pointer to a list
+
+`)` - Loads the latest saved memory pointer
+
+`p` - Pops the latest pointer from the pointer list
+
+`r` - Saves the value of the current byte
+
+`l` - Loads saved value to the current byte
 
 ## Future Plans
 
 * Add more custom syntax
   * Set pointer to value
-  * Use `(` and `)` to save and restore pointer position
-  * Use `{` and `}` to save and put pointer value
   * ... more to come!
-* Improve memory managment
 * Improve whitespace filtering
 * Create a vim syntax file for simplifying developing dbrainfuck (not that anyone is going to)

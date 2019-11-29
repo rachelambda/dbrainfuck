@@ -13,7 +13,12 @@ byte hex_to_char(char* inpstr){
 }
 
 void expand(void* array, unsigned char byte_size, unsigned int* length){
-	*length++;
+	++*length;
+	array = realloc(array, *length * byte_size);
+}
+
+void contract(void* array, unsigned char byte_size, unsigned int* length){
+	*length--;
 	array = realloc(array, *length * byte_size);
 }
 
@@ -42,10 +47,20 @@ int main(int argc, char** argv){
 
 	// Create variables for the program instructions
 	unsigned int instoffset = 0;
-	unsigned int instretarrsize = 4;
-	unsigned int instretarrspace = 4;
+	unsigned int instretarrsize = 0;
 	unsigned int* instretarr = malloc(instretarrsize * sizeof(unsigned int));
 	instlen -= 2; // Remove newline and 0x0 from end of file
+
+	// Save val
+	byte savedval = 0x0;
+
+	// Create varibales for storing pointer positions
+	typedef struct mempos_struct{
+		unsigned int memoffset;
+		byte* memptr;
+	} mempos_struct;
+	unsigned int memoffsetstoresize = 0;
+	mempos_struct* memoffsetstore = malloc(memoffsetstoresize);
 
 #ifdef DEBUG
 	printf("instlen: %d\n", instlen);
@@ -113,12 +128,8 @@ int main(int argc, char** argv){
 			// Start of while
 			case '[':
 				if(*mempointer){
-					if(instretarrspace == 00){
-						expand(instretarr, 4, &instretarrsize);
-						instretarrspace++;
-					}
-					instretarr[instretarrsize - instretarrspace] = instoffset;
-					instretarrspace--;
+					expand(instretarr, 4, &instretarrsize);
+					instretarr[instretarrsize - 1] = instoffset;
 				} else {
 					leftbrackets = 1;
 					rightbrackets = 0;
@@ -135,7 +146,7 @@ int main(int argc, char** argv){
 							instoffset = n; // Found right bracket, will add one though so just set it to the adress of it for now
 						}
 					}
-					instretarrspace++;
+					contract(instretarr, 4, &instretarrsize);
 				}
 
 				break;
@@ -143,10 +154,46 @@ int main(int argc, char** argv){
 			// Jump back from loop
 			case ']':
 				if(*mempointer){
-					instoffset = instretarr[instretarrsize - instretarrspace - 1];
+					instoffset = instretarr[instretarrsize - 1];
 				}else{
-					instretarrspace++;
+					contract(instretarr, 4, &instretarrsize);
 				}
+				break;
+
+			// Store the current pointer address
+			case '(':
+				expand(memoffsetstore, 8, &memoffsetstoresize);
+				memoffsetstore[memoffsetstoresize - 1].memoffset = memoffset;
+				memoffsetstore[memoffsetstoresize - 1].memptr = mempointer;
+				break;
+
+			// Load the latest pointer address
+			case ')':
+				if(memoffsetstoresize < 1){
+					printf("Error at instruction #%d: '%c'. No matching '('.\n", instoffset, instarr[instoffset]);
+					return -1;
+				}
+				memoffset = memoffsetstore[memoffsetstoresize - 1].memoffset;
+				mempointer = memoffsetstore[memoffsetstoresize - 1].memptr;
+				break;
+
+			// Pop loaded pointer address
+			case 'p':
+				if(memoffsetstoresize < 1){
+					printf("Error at instruction #%d: '%c'. No '(' to pop.\n", instoffset, instarr[instoffset]);
+					return -1;
+				}
+				contract(memoffsetstore, 8, &memoffsetstoresize);
+				break;
+
+			// Read value of byte and save
+			case 'r':
+				savedval = *mempointer;
+				break;
+
+			// Load saved value of byte
+			case 'l':
+				*mempointer = savedval;
 				break;
 			
 			// Set value of byte
@@ -161,7 +208,7 @@ int main(int argc, char** argv){
 				rightbrackets = 0;
 				for(int n = instoffset + 1;; n++){ 
 					if(!n < instlen){
-						return 0;
+						exit(*mempointer);
 					}
 					if(instarr[n] == '[')
 						leftbrackets++;
@@ -171,7 +218,7 @@ int main(int argc, char** argv){
 						instoffset = n; // Found right bracket, will add one though so just set it to the adress of it for now
 					}
 				}
-				instretarrspace++;
+				contract(instretarr, 4, &instretarrsize);
 				break;
 			
 			// Handle white space

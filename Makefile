@@ -1,11 +1,10 @@
 CC=gcc
 PROJECTDIR=build/dbrainfuck.out
 INSTALLDIR=/bin/dbrainfuck
-CFLAGS=
+CFLAGS= -g
 INSTALLFLAGS=
 
 default: src/dbrainfuck.c
-	mkdir $(PROJECTDIR)
 	$(CC) -o $(PROJECTDIR) $^ $(CFLAGS)
 
 install: src/dbrainfuck.c
