@@ -1,7 +1,7 @@
 # dbrainfuck
 depsterr - brainfuck, dbrainfuck for short is an interpreter and extention of the brainfuck language
 
-## Installation and usage
+## Installation and Usage
 
 To install dbrainfuck, run the following
 ```shell
@@ -31,7 +31,7 @@ Except for the normal brainfuck syntax dbrainfuck currently has the following fe
 
 \**as long as your have ram to spare*
 
-### Syntax
+### New Syntax
 
 `\` - Breaks the all loops, if not in a loop it will exit the program with the current pointer value as status
 
