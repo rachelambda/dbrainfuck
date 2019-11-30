@@ -12,26 +12,20 @@ byte hex_to_char(char* inpstr){
 	return outbyte;
 }
 
-void expand(void* array, unsigned char byte_size, unsigned int* length){
+void expand(void** array, unsigned char byte_size, unsigned int* length){
 	++*length;
-	array = realloc(array, *length * byte_size);
+	*array = realloc(*array, *length * byte_size);
 }
 
-void contract(void* array, unsigned char byte_size, unsigned int* length){
-	*length--;
-
-	void* cparr = malloc(*length * byte_size);
-	for(int n = 0; n < *length * byte_size; n++){
-		((byte*)cparr)[n] = ((byte*)array)[n];
-	}
-
-	array = cparr;
+void contract(void** array, unsigned char byte_size, unsigned int* length){
+	--*length;
+	*array = realloc(*array, *length * byte_size);
 }
 
-void empty(void* array, unsigned int* length){
+void empty(void** array, unsigned int* length){
 	*length = 0;
 	free(array);
-	array = malloc(0);
+	array = NULL;
 }
 
 void handle_flags(int argc, char** argv){
@@ -73,12 +67,7 @@ int main(int argc, char** argv){
 	instarr = cpinst;
 	instlen = cpinstfill;
 
-	cpinst = malloc(instlen);
-	for(int n = 0; n <= instlen; n++){
-		cpinst[n] = instarr[n];
-	}
-	free(instarr);
-	instarr = cpinst;
+	instarr = realloc(instarr, instlen);
 
 	// Create variables for the program instructions
 	unsigned int instoffset = 0;
@@ -124,7 +113,7 @@ int main(int argc, char** argv){
 			// Increment pointer value
 			case '>':
 				if(memoffset == memsize){
-					expand(mem, 1, &memsize);
+					expand((void**)&mem, 1, &memsize);
 				}
 				memoffset++;
 				mempointer++;
@@ -163,7 +152,7 @@ int main(int argc, char** argv){
 			// Start of while
 			case '[':
 				if(*mempointer){
-					expand(instretarr, 4, &instretarrsize);
+					expand((void**)&instretarr, 4, &instretarrsize);
 					instretarr[instretarrsize - 1] = instoffset;
 				} else {
 					leftbrackets = 1;
@@ -181,13 +170,16 @@ int main(int argc, char** argv){
 							instoffset = n; // Found right bracket, will add one though so just set it to the adress of it for now
 						}
 					}
-					contract(instretarr, 4, &instretarrsize);
+					contract((void**)&instretarr, 4, &instretarrsize);
 				}
 
 				break;
 
 			// Jump back from loop
 			case ']':
+				if(instretarrsize <= 0){
+					printf("Error at instruction #%d: '%c'. No matching '['.\n", instoffset, instarr[instoffset]);
+				}
 				if(*mempointer){
 #ifdef DEBUG
 					printf("] *mempointer: %d\n", *mempointer);
@@ -197,13 +189,13 @@ int main(int argc, char** argv){
 #ifdef DEBUG
 					printf("] *mempointer: %d, contracting\n", *mempointer);
 #endif
-					contract(instretarr, 4, &instretarrsize);
+					contract((void**)&instretarr, 4, &instretarrsize);
 				}
 				break;
 
 			// Store the current pointer address
 			case '(':
-				expand(memoffsetstore, sizeof(memoffsetstore), &memoffsetstoresize);
+				expand((void**)&memoffsetstore, sizeof(memoffsetstore), &memoffsetstoresize);
 				memoffsetstore[memoffsetstoresize - 1].memoffset = memoffset;
 				memoffsetstore[memoffsetstoresize - 1].memptr = mempointer;
 				break;
@@ -230,7 +222,7 @@ int main(int argc, char** argv){
 					printf("Error at instruction #%d: '%c'. No '(' to pop.\n", instoffset, instarr[instoffset]);
 					return -1;
 				}
-				contract(memoffsetstore, 8, &memoffsetstoresize);
+				contract((void**)&memoffsetstore, 8, &memoffsetstoresize);
 				break;
 
 			// Read value of byte and save
@@ -283,7 +275,7 @@ int main(int argc, char** argv){
 #endif
 					}
 				}
-				empty(instretarr, &instretarrsize);
+				empty((void**)&instretarr, &instretarrsize);
 				break;
 
 			// Move mempointer *mempointer to the left
@@ -300,7 +292,7 @@ int main(int argc, char** argv){
 			case '}':
 				if(memoffset + *mempointer >= memsize){
 					memsize += memoffset + *mempointer;
-					expand(mem, 1, &memsize);
+					expand((void**)&mem, 1, &memsize);
 				}
 				memoffset += *mempointer;
 				mempointer += *mempointer;
