@@ -114,6 +114,7 @@ int main(int argc, char** argv){
 			case '>':
 				if(memoffset == memsize){
 					expand((void**)&mem, 1, &memsize);
+					mem[memsize-1] = 0x0;
 				}
 				memoffset++;
 				mempointer++;
@@ -291,8 +292,11 @@ int main(int argc, char** argv){
 			// Move mempointer *mempointer to the right
 			case '}':
 				if(memoffset + *mempointer >= memsize){
-					memsize += memoffset + *mempointer;
+					int oldmemsize = memsize;
+					memsize = memoffset + *mempointer - 1;
 					expand((void**)&mem, 1, &memsize);
+					for(int n = oldmemsize; n < memsize; n++)
+						mem[n] = 0x0; 
 				}
 				memoffset += *mempointer;
 				mempointer += *mempointer;
