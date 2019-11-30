@@ -10,7 +10,7 @@ cd dbrainfuck
 sudo make install
 ```
 
-To then use dbrainfuck with the dbrainfuck command
+Then use dbrainfuck with the dbrainfuck command
 ```shell
 dbrainfuck <path-to-brainfuck-file>
 ```
