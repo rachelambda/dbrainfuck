@@ -1,5 +1,5 @@
 # dbrainfuck
-depsterr - brainfuck, dbrainfuck for short is an interpreter and extention of the brainfuck language
+depsterr - brainfuck, dbrainfuck for short, is an interpreter and extention of the brainfuck language
 
 ## Installation and Usage
 
