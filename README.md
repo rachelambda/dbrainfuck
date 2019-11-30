@@ -39,7 +39,7 @@ Except for the normal brainfuck syntax dbrainfuck currently has the following fe
 
 `\` - Breaks the all loops, if not in a loop it will exit the program with the current pointer value as status
 
-`^FF` - Sets the value of the current byte to the hex value specified (note that whitespace is not supported here at the moment, the formatt must be `^FF`)
+`^FF` - Sets the value of the current byte to the hex value specified
 
 `(` - Saves the current memory pointer to a list
 
