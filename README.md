@@ -31,6 +31,10 @@ Except for the normal brainfuck syntax dbrainfuck currently has the following fe
 
 * Extended syntax and functionality
 
+* Saved value space for one byte
+
+* Save and jump back to memory addresses
+
 \**as long as your have ram to spare*
 
 ### New Syntax
