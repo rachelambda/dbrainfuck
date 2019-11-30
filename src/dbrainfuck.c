@@ -298,6 +298,11 @@ int main(int argc, char** argv){
 				mempointer += *mempointer;
 				break;	  
 
+			// Compare values
+			case '=':
+				savedval = (savedval == *mempointer);
+				break;
+
 			// Error if char is not recognized
 			default:
 				printf("Error at instruction #%d: '%c'. Instruction not recognized.\n", instoffset, instarr[instoffset]);

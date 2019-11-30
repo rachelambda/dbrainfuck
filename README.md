@@ -47,9 +47,11 @@ Except for the normal brainfuck syntax dbrainfuck currently has the following fe
 
 `/` - Pops the latest pointer from the pointer list
 
-`$` - Saves the value of the current byte
+`$` - Saves the value of the byte pointed at
 
-`@` - Loads saved value to the current byte
+`@` - Loads saved value to the byte pointed at
+
+`=` - Compares the byte pointed at to the saved value and then writes 0 or 1 to the saved value
 
 `}` - Moves memory pointer as many bytes forward as byte pointed at
 
