@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//#define DEBUG
-
 #define byte unsigned char
+
+byte debug = 0;
 
 byte hex_to_char(char* inpstr){
 	byte outbyte;
@@ -29,7 +29,9 @@ void empty(void** array, unsigned int* length){
 }
 
 void handle_flags(int argc, char** argv){
-	for(int argn = argc; argn > 0; argn--){
+	for(int n = 0; n < argc; n++){
+		if(argv[n][0] == '-' && argv[n][1] == 'g')
+			debug = 1;
 	}
 }
 
@@ -86,9 +88,9 @@ int main(int argc, char** argv){
 	unsigned int memoffsetstoresize = 0;
 	mempos_struct* memoffsetstore = malloc(memoffsetstoresize);
 
-#ifdef DEBUG
+if(debug){
 	printf("instlen: %d\n", instlen);
-#endif
+}
 
 	// Initialize variables for the memory
 	unsigned int memsize = 64;
@@ -99,9 +101,9 @@ int main(int argc, char** argv){
 	for(int n = 0; n < memsize; n++)
 		mem[n] = 0x0;
 
-#ifdef DEBUG
-	printf("'\n%s'\n", instarr);
-#endif
+if(debug){
+	printf("'%s'\n", instarr);
+}
 
 	// Needed for nested loops
 	unsigned int leftbrackets;
@@ -155,7 +157,13 @@ int main(int argc, char** argv){
 				if(*mempointer){
 					expand((void**)&instretarr, 4, &instretarrsize);
 					instretarr[instretarrsize - 1] = instoffset;
+if(debug){
+	printf("[ *mempointer: %u, expanding\n", *mempointer);
+}
 				} else {
+if(debug){
+	printf("[ *mempointer: %u\n", *mempointer);
+}
 					leftbrackets = 1;
 					rightbrackets = 0;
 					for(int n = instoffset + 1;; n++){ 
@@ -179,17 +187,19 @@ int main(int argc, char** argv){
 			// Jump back from loop
 			case ']':
 				if(instretarrsize <= 0){
-					printf("Error at instruction #%d: '%c'. No matching '['.\n", instoffset, instarr[instoffset]);
+if(debug){
+					printf("] *mempointer: %u, skipping\n", instoffset, instarr[instoffset]);
+}
 				}
 				if(*mempointer){
-#ifdef DEBUG
-					printf("] *mempointer: %d\n", *mempointer);
-#endif
+if(debug){
+					printf("] *mempointer: %u\n", *mempointer);
+}
 					instoffset = instretarr[instretarrsize - 1];
 				}else{
-#ifdef DEBUG
-					printf("] *mempointer: %d, contracting\n", *mempointer);
-#endif
+if(debug){
+					printf("] *mempointer: %u, contracting\n", *mempointer);
+}
 					contract((void**)&instretarr, 4, &instretarrsize);
 				}
 				break;
@@ -203,18 +213,18 @@ int main(int argc, char** argv){
 
 			// Load the latest pointer address
 			case ')':
-#ifdef DEBUG
-				printf("Before ) values: memoffset: %d, memptr: %d\n", memoffset, mempointer);
-#endif
+if(debug){
+				printf("Before ) values: memoffset: %d, memptr: %u\n", memoffset, mempointer);
+}
 				if(memoffsetstoresize < 1){
 					printf("Error at instruction #%d: '%c'. No matching '('.\n", instoffset, instarr[instoffset]);
 					return -1;
 				}
 				memoffset = memoffsetstore[memoffsetstoresize - 1].memoffset;
 				mempointer = memoffsetstore[memoffsetstoresize - 1].memptr;
-#ifdef DEBUG
-				printf("After ( values: memoffset: %d, memptr: %d\n", memoffset, mempointer);
-#endif
+if(debug){
+				printf("After ( values: memoffset: %d, memptr: %u\n", memoffset, mempointer);
+}
 				break;
 
 			// Pop loaded pointer address
@@ -249,31 +259,31 @@ int main(int argc, char** argv){
 				}
 				leftbrackets = 0;
 				rightbrackets = 0;
-#ifdef DEBUG
+if(debug){
 				printf("%d\n", instretarr[0]);
-#endif
+}
 				for(int n = instretarr[0];; n++){ 
-#ifdef DEBUG
+if(debug){
 					printf("instarr[%d] = %c\n", n, instarr[n]);
-#endif
+}
 					if(instarr[n] == '['){
 						leftbrackets++;
-#ifdef DEBUG
+if(debug){
 						printf("Found leftbracket!\n");
-#endif
+}
 					}
 					else if(instarr[n] == ']'){
 						rightbrackets++;
-#ifdef DEBUG
+if(debug){
 						printf("Found leftbracket!\n");
-#endif
+}
 					}
 					if(leftbrackets == rightbrackets){
 						instoffset = n; 
 						break;
-#ifdef DEBUG
+if(debug){
 						printf("Equal brackets\n");
-#endif
+}
 					}
 				}
 				empty((void**)&instretarr, &instretarrsize);

@@ -12,7 +12,12 @@ sudo make install
 
 Then use dbrainfuck with the dbrainfuck command
 ```shell
-dbrainfuck <path-to-brainfuck-file>
+dbrainfuck <path-to-brainfuck-file> [ options ]
+```
+
+Currently the following options exist
+```
+-g	prints debug info
 ```
 
 ## Features
