@@ -54,7 +54,7 @@ int main(int argc, char** argv){
 	unsigned int cpinstfill = 0;
 	unsigned char comment = 0;
 	for(int n = 0; n <= instlen; n++){
-		if(instarr[n] == '\n' && instarr[n+1] == '#'){
+		if(instarr[n] == '#'){
 			comment = 1;
 		} else if(instarr[n] == '\n'){
 			comment = 0;
