@@ -24,8 +24,8 @@ void contract(void** array, unsigned char byte_size, unsigned int* length){
 
 void empty(void** array, unsigned int* length){
 	*length = 0;
-	free(array);
-	array = NULL;
+	free(*array);
+	*array = NULL;
 }
 
 void handle_flags(int argc, char** argv){
