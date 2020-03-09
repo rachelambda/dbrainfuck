@@ -125,9 +125,9 @@ main(int argc, char** argv)
 	unsigned int memoffsetstoresize = 0;
 	mempos_struct* memoffsetstore = malloc(memoffsetstoresize);
 
-if(debug){
-	printf("instlen: %d\n", instlen);
-}
+	if(debug){
+		printf("instlen: %d\n", instlen);
+	}
 
 	/* Initialize variables for the memory */
 	unsigned int memsize = 64;
@@ -138,9 +138,9 @@ if(debug){
 	for(int n = 0; n < memsize; n++)
 		mem[n] = 0x0;
 
-if(debug){
-	printf("'%s'\n", instarr);
-}
+	if(debug){
+		printf("'%s'\n", instarr);
+	}
 
 	/* Needed for nested loops */
 	unsigned int leftbrackets;
@@ -149,215 +149,215 @@ if(debug){
 	while(instoffset <= instlen){
 		switch(instarr[instoffset]){
 
-			/* Increment pointer value */
-			case '>':
-				if(memoffset == memsize){
-					expand((void**)&mem, 1, &memsize);
-					mem[memsize-1] = 0x0;
-				}
-				memoffset++;
-				mempointer++;
-				break;
+		/* Increment pointer value */
+		case '>':
+			if(memoffset == memsize){
+				expand((void**)&mem, 1, &memsize);
+				mem[memsize-1] = 0x0;
+			}
+			memoffset++;
+			mempointer++;
+			break;
 
-			/* Lower pointer value */
-			case '<':
-				if(memoffset == 0){
-					printf("Error at instruction #%d: '%c'. Already at the start of memory.\n", instoffset, instarr[instoffset]);
-					return -1;
-				}
-				memoffset--;
-				mempointer--;
-				break;
-
-			/* Increment byte value */
-			case '+':
-				++*mempointer;
-				break;
-
-			/* Lower byte value */
-			case '-':
-				--*mempointer;
-				break;
-
-			/* Read byte */
-			case '.':
-				putchar(*mempointer);
-				break;
-
-			/* Print byte */
-			case ',':
-				*mempointer = getchar();
-				break;
-
-			/* Start of while */
-			case '[':
-				if(*mempointer){
-					expand((void**)&instretarr, 4, &instretarrsize);
-					instretarr[instretarrsize - 1] = instoffset;
-					if(debug){
-						printf("[ *mempointer: %u, expanding\n", *mempointer);
-					}
-				} else {
-					if(debug){
-						printf("[ *mempointer: %u\n", *mempointer);
-					}
-					leftbrackets = 1;
-					rightbrackets = 0;
-					for(int n = instoffset + 1;; n++){ 
-						if(n > instlen){
-							printf("Error at instruction #%d: '%c'. No matching ']'.\n", instoffset, instarr[instoffset]);
-							return -1;
-						}
-						if(instarr[n] == '[')
-							leftbrackets++;
-						else if(instarr[n] == ']')
-							rightbrackets++;
-						if(leftbrackets == rightbrackets){
-							instoffset = n; /* Found right bracket, will add one though so just set it to the adress of it for now */
-						}
-					}
-					contract((void**)&instretarr, 4, &instretarrsize);
-				}
-
-				break;
-
-			/* Jump back from loop */
-			case ']':
-				if(instretarrsize <= 0){
-					if(debug){
-						printf("] *mempointer: %u, skipping\n", instoffset, instarr[instoffset]);
-					}
-				}
-				if(*mempointer){
-if(debug){
-					printf("] *mempointer: %u\n", *mempointer);
-}
-					instoffset = instretarr[instretarrsize - 1];
-				}else{
-if(debug){
-					printf("] *mempointer: %u, contracting\n", *mempointer);
-}
-					contract((void**)&instretarr, 4, &instretarrsize);
-				}
-				break;
-
-			/* Store the current pointer address */
-			case '(':
-				expand((void**)&memoffsetstore, sizeof(memoffsetstore), &memoffsetstoresize);
-				memoffsetstore[memoffsetstoresize - 1].memoffset = memoffset;
-				memoffsetstore[memoffsetstoresize - 1].memptr = mempointer;
-				break;
-
-			/* Load the latest pointer address */
-			case ')':
-				if(debug){
-					printf("Before ) values: memoffset: %d, memptr: %u\n", memoffset, mempointer);
-				}
-				if(memoffsetstoresize < 1){
-					printf("Error at instruction #%d: '%c'. No matching '('.\n", instoffset, instarr[instoffset]);
-					return -1;
-				}
-				memoffset = memoffsetstore[memoffsetstoresize - 1].memoffset;
-				mempointer = memoffsetstore[memoffsetstoresize - 1].memptr;
-				if(debug){
-					printf("After ( values: memoffset: %d, memptr: %u\n", memoffset, mempointer);
-				}
-				break;
-
-			/* Pop loaded pointer address */
-			case '/':
-				if(memoffsetstoresize < 1){
-					printf("Error at instruction #%d: '%c'. No '(' to pop.\n", instoffset, instarr[instoffset]);
-					return -1;
-				}
-				contract((void**)&memoffsetstore, 8, &memoffsetstoresize);
-				break;
-
-			/* Read value of byte and save */
-			case '$':
-				savedval = *mempointer;
-				break;
-
-			/* Load saved value of byte */
-			case '@':
-				*mempointer = savedval;
-				break;
-			
-			/* Set value of byte */
-			case '^':
-				*mempointer = hex_to_char(&instarr[instoffset + 1]);
-				instoffset += 2; /* Cause of the two hex letters */
-				break;
-
-			/* Exit loop (think break) or exit program */
-			case '\\':
-				if(instretarrsize == 0){
-					exit(*mempointer);
-				}
-				leftbrackets = 0;
-				rightbrackets = 0;
-				if(debug){
-					printf("%d\n", instretarr[0]);
-				}
-				for(int n = instretarr[0];; n++){ 
-					if(debug){
-						printf("instarr[%d] = %c\n", n, instarr[n]);
-					}
-					if(instarr[n] == '['){
-						leftbrackets++;
-						if(debug){
-							printf("Found leftbracket!\n");
-						}
-					}
-					else if(instarr[n] == ']'){
-						rightbrackets++;
-						if(debug){
-							printf("Found leftbracket!\n");
-						}
-					}
-					if(leftbrackets == rightbrackets){
-						instoffset = n; 
-						break;
-						if(debug){
-							printf("Equal brackets\n");
-						}
-					}
-				}
-				empty((void**)&instretarr, &instretarrsize);
-				break;
-
-			/* Move mempointer *mempointer to the left */
-			case '{':
-				if(memoffset - *mempointer < 0){
-					printf("Error at instruction #%d: '%c'. Attempting to move to index `%d`.\n", instoffset, instarr[instoffset], memoffset - *mempointer);
-					return -1;
-				}
-				memoffset -= *mempointer;
-				mempointer -= *mempointer;
-				break;
-		
-			/* Move mempointer *mempointer to the right */
-			case '}':
-				if(memoffset + *mempointer >= memsize){
-					int oldmemsize = memsize;
-					memsize = memoffset + *mempointer - 1;
-					expand((void**)&mem, 1, &memsize);
-					for(int n = oldmemsize; n < memsize; n++)
-						mem[n] = 0x0; 
-				}
-				memoffset += *mempointer;
-				mempointer += *mempointer;
-				break;	  
-
-			/* Compare values */
-			case '=':
-				savedval = (savedval == *mempointer);
-				break;
-
-			/* Error if char is not recognized */
-			default:
-				printf("Error at instruction #%d: '%c'. Instruction not recognized.\n", instoffset, instarr[instoffset]);
+		/* Lower pointer value */
+		case '<':
+			if(memoffset == 0){
+				printf("Error at instruction #%d: '%c'. Already at the start of memory.\n", instoffset, instarr[instoffset]);
 				return -1;
+			}
+			memoffset--;
+			mempointer--;
+			break;
+
+		/* Increment byte value */
+		case '+':
+			++*mempointer;
+			break;
+
+		/* Lower byte value */
+		case '-':
+			--*mempointer;
+			break;
+
+		/* Read byte */
+		case '.':
+			putchar(*mempointer);
+			break;
+
+		/* Print byte */
+		case ',':
+			*mempointer = getchar();
+			break;
+
+		/* Start of while */
+		case '[':
+			if(*mempointer){
+				expand((void**)&instretarr, 4, &instretarrsize);
+				instretarr[instretarrsize - 1] = instoffset;
+				if(debug){
+					printf("[ *mempointer: %u, expanding\n", *mempointer);
+				}
+			} else {
+				if(debug){
+					printf("[ *mempointer: %u\n", *mempointer);
+				}
+				leftbrackets = 1;
+				rightbrackets = 0;
+				for(int n = instoffset + 1;; n++){ 
+					if(n > instlen){
+						printf("Error at instruction #%d: '%c'. No matching ']'.\n", instoffset, instarr[instoffset]);
+						return -1;
+					}
+					if(instarr[n] == '[')
+						leftbrackets++;
+					else if(instarr[n] == ']')
+						rightbrackets++;
+					if(leftbrackets == rightbrackets){
+						instoffset = n; /* Found right bracket, will add one though so just set it to the adress of it for now */
+					}
+				}
+				contract((void**)&instretarr, 4, &instretarrsize);
+			}
+
+			break;
+
+		/* Jump back from loop */
+		case ']':
+			if(instretarrsize <= 0){
+				if(debug){
+					printf("] *mempointer: %u, skipping\n", instoffset, instarr[instoffset]);
+				}
+			}
+			if(*mempointer){
+				if(debug){
+					printf("] *mempointer: %u\n", *mempointer);
+				}
+				instoffset = instretarr[instretarrsize - 1];
+			}else{
+				if(debug){
+					printf("] *mempointer: %u, contracting\n", *mempointer);
+				}
+				contract((void**)&instretarr, 4, &instretarrsize);
+			}
+			break;
+
+		/* Store the current pointer address */
+		case '(':
+			expand((void**)&memoffsetstore, sizeof(memoffsetstore), &memoffsetstoresize);
+			memoffsetstore[memoffsetstoresize - 1].memoffset = memoffset;
+			memoffsetstore[memoffsetstoresize - 1].memptr = mempointer;
+			break;
+
+		/* Load the latest pointer address */
+		case ')':
+			if(debug){
+				printf("Before ) values: memoffset: %d, memptr: %u\n", memoffset, mempointer);
+			}
+			if(memoffsetstoresize < 1){
+				printf("Error at instruction #%d: '%c'. No matching '('.\n", instoffset, instarr[instoffset]);
+				return -1;
+			}
+			memoffset = memoffsetstore[memoffsetstoresize - 1].memoffset;
+			mempointer = memoffsetstore[memoffsetstoresize - 1].memptr;
+			if(debug){
+				printf("After ( values: memoffset: %d, memptr: %u\n", memoffset, mempointer);
+			}
+			break;
+
+		/* Pop loaded pointer address */
+		case '/':
+			if(memoffsetstoresize < 1){
+				printf("Error at instruction #%d: '%c'. No '(' to pop.\n", instoffset, instarr[instoffset]);
+				return -1;
+			}
+			contract((void**)&memoffsetstore, 8, &memoffsetstoresize);
+			break;
+
+		/* Read value of byte and save */
+		case '$':
+			savedval = *mempointer;
+			break;
+
+		/* Load saved value of byte */
+		case '@':
+			*mempointer = savedval;
+			break;
+		
+		/* Set value of byte */
+		case '^':
+			*mempointer = hex_to_char(&instarr[instoffset + 1]);
+			instoffset += 2; /* Cause of the two hex letters */
+			break;
+
+		/* Exit loop (think break) or exit program */
+		case '\\':
+			if(instretarrsize == 0){
+				exit(*mempointer);
+			}
+			leftbrackets = 0;
+			rightbrackets = 0;
+			if(debug){
+				printf("%d\n", instretarr[0]);
+			}
+			for(int n = instretarr[0];; n++){ 
+				if(debug){
+					printf("instarr[%d] = %c\n", n, instarr[n]);
+				}
+				if(instarr[n] == '['){
+					leftbrackets++;
+					if(debug){
+						printf("Found leftbracket!\n");
+					}
+				}
+				else if(instarr[n] == ']'){
+					rightbrackets++;
+					if(debug){
+						printf("Found leftbracket!\n");
+					}
+				}
+				if(leftbrackets == rightbrackets){
+					instoffset = n; 
+					break;
+					if(debug){
+						printf("Equal brackets\n");
+					}
+				}
+			}
+			empty((void**)&instretarr, &instretarrsize);
+			break;
+
+		/* Move mempointer *mempointer to the left */
+		case '{':
+			if(memoffset - *mempointer < 0){
+				printf("Error at instruction #%d: '%c'. Attempting to move to index `%d`.\n", instoffset, instarr[instoffset], memoffset - *mempointer);
+				return -1;
+			}
+			memoffset -= *mempointer;
+			mempointer -= *mempointer;
+			break;
+		
+		/* Move mempointer *mempointer to the right */
+		case '}':
+			if(memoffset + *mempointer >= memsize){
+				int oldmemsize = memsize;
+				memsize = memoffset + *mempointer - 1;
+				expand((void**)&mem, 1, &memsize);
+				for(int n = oldmemsize; n < memsize; n++)
+					mem[n] = 0x0; 
+			}
+			memoffset += *mempointer;
+			mempointer += *mempointer;
+			break;	  
+
+		/* Compare values */
+		case '=':
+			savedval = (savedval == *mempointer);
+			break;
+
+		/* Error if char is not recognized */
+		default:
+			printf("Error at instruction #%d: '%c'. Instruction not recognized.\n", instoffset, instarr[instoffset]);
+			return -1;
 		}
 		instoffset++;
 	}
