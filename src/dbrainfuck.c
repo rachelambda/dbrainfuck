@@ -3,53 +3,68 @@
 #include <stdlib.h>
 
 #define byte unsigned char
+#define bool unsigned char
+#define false 0
+#define true !false
 
 char* helpmsg = \
 		  "dbrainfuck, usage:\n"\
 		  "\n"\
 		  "dbrainfuck <arg> [flags]\n"\
-		  "\n"\
-		  "flags:\n"\
+			  "\n"\
+			  "flags:\n"\
 		  "\n"\
 		  "-g enable debug"\
 		  "-a use arg as code and not filename";
 
-byte debug = 0;
-byte readarg = 0;
+bool debug = false;
+bool readarg = true;
 
-byte hex_to_char(char* inpstr){
+byte
+hex_to_char(char* inpstr)
+{
 	byte outbyte;
 	char input[3] = {inpstr[0], inpstr[1], '\0'}; sscanf(input, "%x", &outbyte);
 	return outbyte;
 }
 
-void expand(void** array, unsigned char byte_size, unsigned int* length){
+void
+expand(void** array, unsigned char byte_size, unsigned int* length)
+{
 	++*length;
 	*array = realloc(*array, *length * byte_size);
 }
 
-void contract(void** array, unsigned char byte_size, unsigned int* length){
+void
+contract(void** array, unsigned char byte_size, unsigned int* length)
+{
 	--*length;
 	*array = realloc(*array, *length * byte_size);
 }
 
-void empty(void** array, unsigned int* length){
+void
+empty(void** array, unsigned int* length)
+{
 	*length = 0;
 	free(*array);
 	*array = NULL;
 }
 
-void handle_flags(int argc, char** argv){
+void
+handle_flags(int argc, char** argv)
+{
 	for(int n = 0; n < argc; n++){
 		if(argv[n][0] == '-' && argv[n][1] == 'g')
-			debug = 1;
+			debug = false;
 		if(argv[n][0] == '-' && argv[n][1] == 'a')
-			readarg = 1;
+			readarg = true;
 	}
 }
 
-int main(int argc, char** argv){
-	// Handle args
+int
+main(int argc, char** argv)
+{
+	/* Handle args */
 	if(argc < 2){
 		puts(helpmsg);
 		return -1;
@@ -60,7 +75,7 @@ int main(int argc, char** argv){
 	char* instarr = NULL;
 	size_t instlen = 0;
 	if (!readarg) {
-		// Load program into memory
+		/* Load program into memory */
 		FILE* instruction_fp = fopen(argv[1], "rb");
 		instlen = getdelim(&instarr, &instlen, '\0', instruction_fp);
 		fclose(instruction_fp);
@@ -72,7 +87,7 @@ int main(int argc, char** argv){
 	}
 	printf("instlen: %d\n", instlen);
 
-	// Filter whitespace and comments
+	/* Filter whitespace and comments */
 	char* cpinst = malloc(instlen);
 	unsigned int cpinstfill = 0;
 	unsigned char comment = 0;
@@ -93,16 +108,16 @@ int main(int argc, char** argv){
 
 	instarr = realloc(instarr, instlen);
 
-	// Create variables for the program instructions
+	/* Create variables for the program instructions */
 	unsigned int instoffset = 0;
 	unsigned int instretarrsize = 0;
 	unsigned int* instretarr = malloc(instretarrsize * sizeof(unsigned int));
-	instlen -= 2; // Remove newline and 0x0 from end of file
+	instlen -= 2; /* Remove newline and 0x0 from end of file */
 
-	// Save val
+	/* Save val */
 	byte savedval = 0x0;
 
-	// Create varibales for storing pointer positions
+	/* Create varibales for storing pointer positions */
 	typedef struct mempos_struct{
 		unsigned int memoffset;
 		byte* memptr;
@@ -114,7 +129,7 @@ if(debug){
 	printf("instlen: %d\n", instlen);
 }
 
-	// Initialize variables for the memory
+	/* Initialize variables for the memory */
 	unsigned int memsize = 64;
 	unsigned int memoffset = 0;
 
@@ -127,14 +142,14 @@ if(debug){
 	printf("'%s'\n", instarr);
 }
 
-	// Needed for nested loops
+	/* Needed for nested loops */
 	unsigned int leftbrackets;
 	unsigned int rightbrackets;
 
 	while(instoffset <= instlen){
 		switch(instarr[instoffset]){
 
-			// Increment pointer value
+			/* Increment pointer value */
 			case '>':
 				if(memoffset == memsize){
 					expand((void**)&mem, 1, &memsize);
@@ -144,7 +159,7 @@ if(debug){
 				mempointer++;
 				break;
 
-			// Lower pointer value
+			/* Lower pointer value */
 			case '<':
 				if(memoffset == 0){
 					printf("Error at instruction #%d: '%c'. Already at the start of memory.\n", instoffset, instarr[instoffset]);
@@ -154,38 +169,38 @@ if(debug){
 				mempointer--;
 				break;
 
-			// Increment byte value
+			/* Increment byte value */
 			case '+':
 				++*mempointer;
 				break;
 
-			// Lower byte value
+			/* Lower byte value */
 			case '-':
 				--*mempointer;
 				break;
 
-			// Read byte
+			/* Read byte */
 			case '.':
 				putchar(*mempointer);
 				break;
 
-			// Print byte
+			/* Print byte */
 			case ',':
 				*mempointer = getchar();
 				break;
 
-			// Start of while
+			/* Start of while */
 			case '[':
 				if(*mempointer){
 					expand((void**)&instretarr, 4, &instretarrsize);
 					instretarr[instretarrsize - 1] = instoffset;
-if(debug){
-	printf("[ *mempointer: %u, expanding\n", *mempointer);
-}
+					if(debug){
+						printf("[ *mempointer: %u, expanding\n", *mempointer);
+					}
 				} else {
-if(debug){
-	printf("[ *mempointer: %u\n", *mempointer);
-}
+					if(debug){
+						printf("[ *mempointer: %u\n", *mempointer);
+					}
 					leftbrackets = 1;
 					rightbrackets = 0;
 					for(int n = instoffset + 1;; n++){ 
@@ -198,7 +213,7 @@ if(debug){
 						else if(instarr[n] == ']')
 							rightbrackets++;
 						if(leftbrackets == rightbrackets){
-							instoffset = n; // Found right bracket, will add one though so just set it to the adress of it for now
+							instoffset = n; /* Found right bracket, will add one though so just set it to the adress of it for now */
 						}
 					}
 					contract((void**)&instretarr, 4, &instretarrsize);
@@ -206,12 +221,12 @@ if(debug){
 
 				break;
 
-			// Jump back from loop
+			/* Jump back from loop */
 			case ']':
 				if(instretarrsize <= 0){
-if(debug){
-					printf("] *mempointer: %u, skipping\n", instoffset, instarr[instoffset]);
-}
+					if(debug){
+						printf("] *mempointer: %u, skipping\n", instoffset, instarr[instoffset]);
+					}
 				}
 				if(*mempointer){
 if(debug){
@@ -226,30 +241,30 @@ if(debug){
 				}
 				break;
 
-			// Store the current pointer address
+			/* Store the current pointer address */
 			case '(':
 				expand((void**)&memoffsetstore, sizeof(memoffsetstore), &memoffsetstoresize);
 				memoffsetstore[memoffsetstoresize - 1].memoffset = memoffset;
 				memoffsetstore[memoffsetstoresize - 1].memptr = mempointer;
 				break;
 
-			// Load the latest pointer address
+			/* Load the latest pointer address */
 			case ')':
-if(debug){
-				printf("Before ) values: memoffset: %d, memptr: %u\n", memoffset, mempointer);
-}
+				if(debug){
+					printf("Before ) values: memoffset: %d, memptr: %u\n", memoffset, mempointer);
+				}
 				if(memoffsetstoresize < 1){
 					printf("Error at instruction #%d: '%c'. No matching '('.\n", instoffset, instarr[instoffset]);
 					return -1;
 				}
 				memoffset = memoffsetstore[memoffsetstoresize - 1].memoffset;
 				mempointer = memoffsetstore[memoffsetstoresize - 1].memptr;
-if(debug){
-				printf("After ( values: memoffset: %d, memptr: %u\n", memoffset, mempointer);
-}
+				if(debug){
+					printf("After ( values: memoffset: %d, memptr: %u\n", memoffset, mempointer);
+				}
 				break;
 
-			// Pop loaded pointer address
+			/* Pop loaded pointer address */
 			case '/':
 				if(memoffsetstoresize < 1){
 					printf("Error at instruction #%d: '%c'. No '(' to pop.\n", instoffset, instarr[instoffset]);
@@ -258,60 +273,60 @@ if(debug){
 				contract((void**)&memoffsetstore, 8, &memoffsetstoresize);
 				break;
 
-			// Read value of byte and save
+			/* Read value of byte and save */
 			case '$':
 				savedval = *mempointer;
 				break;
 
-			// Load saved value of byte
+			/* Load saved value of byte */
 			case '@':
 				*mempointer = savedval;
 				break;
 			
-			// Set value of byte
+			/* Set value of byte */
 			case '^':
 				*mempointer = hex_to_char(&instarr[instoffset + 1]);
-				instoffset += 2; // Cause of the two hex letters
+				instoffset += 2; /* Cause of the two hex letters */
 				break;
 
-			// Exit loop (think break) or exit program
+			/* Exit loop (think break) or exit program */
 			case '\\':
 				if(instretarrsize == 0){
 					exit(*mempointer);
 				}
 				leftbrackets = 0;
 				rightbrackets = 0;
-if(debug){
-				printf("%d\n", instretarr[0]);
-}
+				if(debug){
+					printf("%d\n", instretarr[0]);
+				}
 				for(int n = instretarr[0];; n++){ 
-if(debug){
-					printf("instarr[%d] = %c\n", n, instarr[n]);
-}
+					if(debug){
+						printf("instarr[%d] = %c\n", n, instarr[n]);
+					}
 					if(instarr[n] == '['){
 						leftbrackets++;
-if(debug){
-						printf("Found leftbracket!\n");
-}
+						if(debug){
+							printf("Found leftbracket!\n");
+						}
 					}
 					else if(instarr[n] == ']'){
 						rightbrackets++;
-if(debug){
-						printf("Found leftbracket!\n");
-}
+						if(debug){
+							printf("Found leftbracket!\n");
+						}
 					}
 					if(leftbrackets == rightbrackets){
 						instoffset = n; 
 						break;
-if(debug){
-						printf("Equal brackets\n");
-}
+						if(debug){
+							printf("Equal brackets\n");
+						}
 					}
 				}
 				empty((void**)&instretarr, &instretarrsize);
 				break;
 
-			// Move mempointer *mempointer to the left
+			/* Move mempointer *mempointer to the left */
 			case '{':
 				if(memoffset - *mempointer < 0){
 					printf("Error at instruction #%d: '%c'. Attempting to move to index `%d`.\n", instoffset, instarr[instoffset], memoffset - *mempointer);
@@ -321,7 +336,7 @@ if(debug){
 				mempointer -= *mempointer;
 				break;
 		
-			// Move mempointer *mempointer to the right
+			/* Move mempointer *mempointer to the right */
 			case '}':
 				if(memoffset + *mempointer >= memsize){
 					int oldmemsize = memsize;
@@ -334,12 +349,12 @@ if(debug){
 				mempointer += *mempointer;
 				break;	  
 
-			// Compare values
+			/* Compare values */
 			case '=':
 				savedval = (savedval == *mempointer);
 				break;
 
-			// Error if char is not recognized
+			/* Error if char is not recognized */
 			default:
 				printf("Error at instruction #%d: '%c'. Instruction not recognized.\n", instoffset, instarr[instoffset]);
 				return -1;
