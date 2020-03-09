@@ -1,22 +1,19 @@
-CC=gcc
-PROJECTDIR=build/dbrainfuck.out
+CC=c99
+PROJECTDIR=dbrainfuck
 INSTALLDIR=/bin/dbrainfuck
-CFLAGS= -g
+debug: CFLAGS=-g
 INSTALLFLAGS=
 
 default: src/dbrainfuck.c
 	$(CC) -o $(PROJECTDIR) $^ $(CFLAGS)
 
-install: src/dbrainfuck.c
-	$(CC) -o $(INSTALLDIR) $^ $(INSTALLFLAGS)
-	make clean
+debug: default
+
+install: default
+	cp $(PROJECTDIR) $(INSTALLDIR)
 
 clean:
 	rm -f *.o
 
-run:
-	make default
+run: default
 	./$(PROJECTDIR)
-
-rc:
-	make run clean

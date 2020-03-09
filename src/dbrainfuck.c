@@ -1,14 +1,25 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 
 #define byte unsigned char
 
+char* helpmsg = \
+		  "dbrainfuck, usage:\n"\
+		  "\n"\
+		  "dbrainfuck <arg> [flags]\n"\
+		  "\n"\
+		  "flags:\n"\
+		  "\n"\
+		  "-g enable debug"\
+		  "-a use arg as code and not filename";
+
 byte debug = 0;
+byte readarg = 0;
 
 byte hex_to_char(char* inpstr){
 	byte outbyte;
-	char input[3] = {inpstr[0], inpstr[1], '\0'};
-	sscanf(input, "%x", &outbyte);
+	char input[3] = {inpstr[0], inpstr[1], '\0'}; sscanf(input, "%x", &outbyte);
 	return outbyte;
 }
 
@@ -32,24 +43,34 @@ void handle_flags(int argc, char** argv){
 	for(int n = 0; n < argc; n++){
 		if(argv[n][0] == '-' && argv[n][1] == 'g')
 			debug = 1;
+		if(argv[n][0] == '-' && argv[n][1] == 'a')
+			readarg = 1;
 	}
 }
 
 int main(int argc, char** argv){
 	// Handle args
 	if(argc < 2){
-		printf("dbrainfuck, not enough args given. Usage: dbrainfuck <path to program>\n");
+		puts(helpmsg);
 		return -1;
 	} else if(argc > 2){
 		handle_flags(argc, argv);
 	}
 
-	// Load program into memory
-	FILE* instruction_fp = fopen(argv[1], "rb");
 	char* instarr = NULL;
-	size_t instlen;
-	instlen = getdelim(&instarr, &instlen, '\0', instruction_fp);
-	fclose(instruction_fp);
+	size_t instlen = 0;
+	if (!readarg) {
+		// Load program into memory
+		FILE* instruction_fp = fopen(argv[1], "rb");
+		instlen = getdelim(&instarr, &instlen, '\0', instruction_fp);
+		fclose(instruction_fp);
+	} else {
+		instarr = argv[1];
+		printf("instarr: %s\n", instarr);
+		instlen = strlen(instarr);
+		printf("instlen: %d\n", instlen);
+	}
+	printf("instlen: %d\n", instlen);
 
 	// Filter whitespace and comments
 	char* cpinst = malloc(instlen);
@@ -65,7 +86,8 @@ int main(int argc, char** argv){
 			cpinstfill++;
 		}
 	}
-	free(instarr);
+	if (!readarg)
+		free(instarr);
 	instarr = cpinst;
 	instlen = cpinstfill;
 
