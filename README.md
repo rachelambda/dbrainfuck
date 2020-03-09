@@ -18,6 +18,7 @@ dbrainfuck <path-to-brainfuck-file> [ options ]
 Currently the following options exist
 ```
 -g	prints debug info
+-a read code from an arg instead of from a file
 ```
 
 ## Features
