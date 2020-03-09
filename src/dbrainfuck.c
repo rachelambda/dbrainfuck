@@ -81,11 +81,8 @@ main(int argc, char** argv)
 		fclose(instruction_fp);
 	} else {
 		instarr = argv[1];
-		printf("instarr: %s\n", instarr);
 		instlen = strlen(instarr);
-		printf("instlen: %d\n", instlen);
 	}
-	printf("instlen: %d\n", instlen);
 
 	/* Filter whitespace and comments */
 	char* cpinst = malloc(instlen);
